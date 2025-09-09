@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <title>Anoma • Intent Bazaar (Single-file, Vanilla JS)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg-50:#f9fafb; --text-900:#111827;
+      --gray-100:#f3f4f6; --gray-300:#d1d5db; --gray-500:#6b7280; --gray-900:#111827;
+      --red-50:#fef2f2; --red-600:#dc2626; --red-700:#b91c1c;
+      --shadow-sm:0 1px 2px rgba(0,0,0,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Arial;color:var(--text-900);background:var(--bg-50)}
+    .min-h-screen{min-height:100vh}
+    .bg-gray-50{background:var(--bg-50)}
+    .text-gray-900{color:var(--text-900)}
+    .text-gray-500{color:var(--gray-500)}
+    .text-red-600{color:var(--red-600)}
+    .text-xs{font-size:.8rem}
+    .text-sm{font-size:.9rem}
+    .text-lg{font-size:1.125rem}
+    .text-xl{font-size:1.25rem}
+    .font-bold{font-weight:700}
+    .font-extrabold{font-weight:800}
+    .font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono",monospace}
+    .tracking-tight{letter-spacing:-.015em}
+    .sticky{position:sticky}.top-0{top:0}.z-10{z-index:10}
+    .backdrop-blur{backdrop-filter:blur(6px)}
+    .bg-white\/70{background:rgba(255,255,255,.7)}
+    .border{border:1px solid var(--gray-300)}
+    .border-b{border-bottom:1px solid var(--gray-300)}
+    .rounded-xl{border-radius:.75rem}
+    .rounded-2xl{border-radius:1rem}
+    .shadow-sm{box-shadow:var(--shadow-sm)}
+    .max-w-6xl{max-width:72rem}.mx-auto{margin:0 auto}
+    .px-4{padding-left:1rem;padding-right:1rem}
+    .py-3{padding-top:.75rem;padding-bottom:.75rem}
+    .p-4{padding:1rem}.p-3{padding:.75rem}
+    .py-6{padding-top:1.5rem;padding-bottom:1.5rem}
+    .py-8{padding-top:2rem;padding-bottom:2rem}
+    .mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mb-3{margin-bottom:.75rem}
+    .flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-2{gap:.5rem}
+    .grid{display:grid}.gap-3{gap:.75rem}.gap-6{gap:1.5rem}
+    @media (min-width:1024px){.lg\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.lg\:col-span-1{grid-column:span 1}.lg\:col-span-2{grid-column:span 2}}
+    .w-full{width:100%}.block{display:block}
+    input,button,table{font:inherit}
+    .btn{padding:.45rem .75rem;border-radius:.75rem;border:1px solid transparent}
+    .btn-dark{background:var(--gray-900);color:#fff}
+    .btn-dark:hover{background:#000}
+    .btn-ghost{border-color:var(--gray-300);color:var(--text-900);background:#fff}
+    .btn-ghost:hover{background:#f9fafb}
+    .input{width:100%;border:1px solid var(--gray-300);border-radius:.75rem;padding:.5rem .75rem}
+    .input:focus{outline:2px solid rgba(17,24,39,.2);outline-offset:2px}
+    .card{border:1px solid var(--gray-300);background:#fff;box-shadow:var(--shadow-sm);border-radius:1rem;padding:1rem}
+    .table{width:100%;border-collapse:collapse}
+    .table th{font-weight:600;color:var(--gray-500);text-align:left}
+    .table td,.table th{padding:.5rem 0}
+    .border-t{border-top:1px solid var(--gray-300)}
+    .list-disc{list-style:disc;padding-left:1.2rem}
+    .italic{font-style:italic}
+  </style>
+</head>
+<body>
+  <header class="sticky top-0 z-10 backdrop-blur bg-white/70 border-b">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+      <h1 class="text-xl font-extrabold tracking-tight">Anoma • Intent Bazaar</h1>
+      <div class="flex gap-2">
+        <button id="seed2" class="btn btn-dark">Seed 2-party</button>
+        <button id="seed3" class="btn btn-dark">Seed 3-cycle</button>
+        <button id="match" class="btn btn-dark">Find Matches</button>
+        <button id="clear" class="btn btn-ghost">Clear</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 grid lg:grid-cols-3 gap-6">
+    <!-- Sol: Form -->
+    <section class="lg:col-span-1">
+      <div class="card">
+        <h3 class="text-lg font-bold mb-3">New Intent</h3>
+        <label class="block text-sm mb-3">
+          <div class="mb-1">Owner</div>
+          <input id="owner" class="input" placeholder="alice" />
+        </label>
+        <label class="block text-sm mb-3">
+          <div class="mb-1">Give (ASSET:qty, comma-separated)</div>
+          <input id="give" class="input" placeholder="USDT:10, ATOM:3" />
+        </label>
+        <label class="block text-sm mb-3">
+          <div class="mb-1">Want (ASSET:qty, comma-separated)</div>
+          <input id="want" class="input" placeholder="ATOM:10" />
+        </label>
+        <label class="block text-sm mb-3">
+          <div class="mb-1">Domain (optional)</div>
+          <input id="domain" class="input" placeholder="local:demo" />
+        </label>
+        <button id="add" class="btn btn-dark w-full">Add Intent</button>
+        <ul id="errors" class="text-sm text-red-600 list-disc mt-3" style="display:none"></ul>
+        <p class="text-xs text-gray-500 mt-2">Format: <code>ATOM:10, USDT:5</code>. Asset names are case-insensitive.</p>
+      </div>
+
+      <div class="card mt-4">
+        <h3 class="text-lg font-bold mb-3">Stats</h3>
+        <p class="text-sm">Total intents: <b id="stat-total">0</b></p>
+        <div id="stat-owners" class="text-xs mt-2"></div>
+      </div>
+    </section>
+
+    <!-- Sağ: Planner + Intents + Results -->
+    <section class="lg:col-span-2">
+      <div class="card">
+        <h3 class="text-lg font-bold mb-3">Intent Robot (NL planner)</h3>
+        <div class="flex gap-2">
+          <input id="cmd" class="input" placeholder="swap 10 usdt on base to atom on cosmos" />
+          <button id="plan" class="btn btn-dark">Plan</button>
+        </div>
+        <p id="planErr" class="text-sm text-red-600 mt-2" style="display:none"></p>
+        <div id="planView" class="mt-3 text-sm"></div>
+      </div>
+
+      <div class="card mt-4">
+        <h3 class="text-lg font-bold mb-3">Intents</h3>
+        <div id="intentsView" class="text-sm"></div>
+      </div>
+
+      <div class="card mt-4">
+        <h3 class="text-lg font-bold mb-3">Matches</h3>
+        <div class="mb-2"><b>Two-party</b></div>
+        <div id="twoView" class="text-sm"></div>
+        <div class="mt-3 mb-2"><b>Three-cycle</b></div>
+        <div id="cycleView" class="text-sm"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="py-8 text-xs text-gray-500 text-center">Intent-centric matching demo • Off-chain simulation.</footer>
+
+  <script>
+    // ---------------- State ----------------
+    const state = {
+      intents: [],
+      results: { two: [], cycles: [] },
+      plan: null,
+    };
+
+    // --------------- NL Planner Config ---------------
+    const CHAINS = ["base", "ethereum", "cosmos"];
+    const AVAIL = { base:["USDC","USDT","ETH"], ethereum:["USDC","USDT","ETH"], cosmos:["USDC","ATOM"] };
+    const PRICE = { USDC:1, USDT:1, ETH:1800, ATOM:10 };
+    const SWAP_FEE = 0.003;
+    const BRIDGE_FEE = {
+      "base->ethereum":0.001, "ethereum->base":0.001,
+      "ethereum->cosmos":0.002, "cosmos->ethereum":0.002,
+      "base->cosmos":0.003,    "cosmos->base":0.003,
+    };
+
+    // --------------- DOM refs ---------------
+    const $ = id => document.getElementById(id);
+    const ownerEl = $("owner"), giveEl=$("give"), wantEl=$("want"), domainEl=$("domain");
+    const addBtn = $("add"), seed2Btn=$("seed2"), seed3Btn=$("seed3"), matchBtn=$("match"), clearBtn=$("clear");
+    const errorsEl = $("errors");
+    const intentsView = $("intentsView");
+    const statTotal = $("stat-total"), statOwners = $("stat-owners");
+    const twoView = $("twoView"), cycleView = $("cycleView");
+    const cmdEl = $("cmd"), planBtn = $("plan"), planErrEl = $("planErr"), planView = $("planView");
+
+    // --------------- Utils ---------------
+    function genId(){ return Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2); }
+    function parseAssetMap(s){
+      const obj={};
+      s.split(',').map(x=>x.trim()).filter(Boolean).forEach(pair=>{
+        const [kRaw,vRaw] = pair.split(':').map(x=>x.trim());
+        if(!kRaw||!vRaw) return;
+        const k = kRaw.toUpperCase();
+        const v = Number(vRaw);
+        if(Number.isFinite(v)&&v>0){ obj[k]=(obj[k]||0)+v; }
+      });
+      return obj;
+    }
+    function assetMapToString(m){
+      const ents = Object.entries(m);
+      if(ents.length===0) return "—";
+      return ents.map(([k,v])=>`${k}:${v}`).join(", ");
+    }
+    function covers(have, need){
+      return Object.entries(need).every(([asset,qty]) => (have[asset]||0) >= qty);
+    }
+    function sameDomain(a,b){ return !a.domain || !b.domain || a.domain===b.domain; }
+    function mkTransfers(from,to,want){ return Object.entries(want).map(([asset,qty])=>({from,to,asset,qty})); }
+    function fmt(n){ return Number(n).toLocaleString(undefined,{maximumFractionDigits:6}); }
+
+    // --------------- Matching ---------------
+    function computeTwoParty(intents){
+      const res=[];
+      for(let i=0;i<intents.length;i++){
+        for(let j=i+1;j<intents.length;j++){
+          const a=intents[i], b=intents[j];
+          if(!sameDomain(a,b)) continue;
+          if(covers(a.give, b.want) && covers(b.give, a.want)){
+            res.push({ type:'two', actors:[a.owner,b.owner], transfer:[...mkTransfers(b.owner,a.owner,a.want), ...mkTransfers(a.owner,b.owner,b.want)] });
+          }
+        }
+      }
+      return res;
+    }
+    function computeThreeCycles(intents){
+      const res=[]; const n=intents.length;
+      for(let i=0;i<n;i++) for(let j=i+1;j<n;j++) for(let k=j+1;k<n;k++){
+        const a=intents[i], b=intents[j], c=intents[k];
+        if(!(sameDomain(a,b)&&sameDomain(b,c)&&sameDomain(a,c))) continue;
+        const tryCycle=(x,y,z)=>{
+          if(covers(x.give,z.want) && covers(y.give,x.want) && covers(z.give,y.want)){
+            res.push({ type:'cycle', actors:[x.owner,y.owner,z.owner], transfer:[ ...mkTransfers(y.owner,x.owner,x.want), ...mkTransfers(z.owner,y.owner,y.want), ...mkTransfers(x.owner,z.owner,z.want) ] });
+          }
+        };
+        tryCycle(a,b,c); tryCycle(a,c,b);
+      }
+      return res;
+    }
+
+    // --------------- NL Planner ---------------
+    function assetExists(asset, chain){ return (AVAIL[chain]||[]).includes(asset); }
+    function preferredChainForAsset(asset){
+      const rows = Object.entries(AVAIL).filter(([ch, arr])=>arr.includes(asset));
+      return rows.length===1 ? rows[0][0] : null;
+    }
+    function parseCommand(s){
+      const re = /(swap|convert|exchange)\s+([\d.]+)\s+([a-zA-Z]+)(?:\s+(?:on|@|in)\s+([a-zA-Z0-9_-]+))?\s+(?:to|into|for)\s+([a-zA-Z]+)(?:\s+(?:on|@|in)\s+([a-zA-Z0-9_-]+))?/i;
+      const m = (s||"").trim().match(re);
+      if(!m) throw new Error("Örnek: swap 10 usdt on base to atom on cosmos");
+      const amount = Number(m[2]);
+      const srcAsset = m[3].toUpperCase();
+      const srcChain = (m[4]||"base").toLowerCase();
+      const dstAsset = m[5].toUpperCase();
+      let dstChain = (m[6]||srcChain).toLowerCase();
+      if(!CHAINS.includes(srcChain)) throw new Error("Unknown source chain");
+      if(!CHAINS.includes(dstChain)) throw new Error("Unknown destination chain");
+      if(!assetExists(srcAsset, srcChain)) throw new Error(`${srcAsset} not available on ${srcChain}`);
+      if(!assetExists(dstAsset, dstChain)){
+        const preferred = preferredChainForAsset(dstAsset);
+        if(preferred) dstChain = preferred; else throw new Error(`${dstAsset} not available on ${dstChain}`);
+      }
+      if(!(amount>0)) throw new Error("Amount must be > 0");
+      return { amount, src:{asset:srcAsset, chain:srcChain}, dst:{asset:dstAsset, chain:dstChain} };
+    }
+    function ensureSwapPossible(from,to,chain){
+      if(!assetExists(from, chain)) throw new Error(`${from} not on ${chain}`);
+      if(!assetExists(to, chain)) throw new Error(`${to} not on ${chain}`);
+    }
+    function ensureBridgePossible(fromChain,toChain,asset){
+      if(!assetExists(asset, fromChain)) throw new Error(`${asset} not on ${fromChain}`);
+      if(!assetExists(asset, toChain) && asset!=="USDC")
+        throw new Error(`Bridge supports USDC only (${fromChain}→${toChain})`);
+    }
+    function swapOut(amount, from, to){ const rate = PRICE[from]/PRICE[to]; return amount*rate*(1-SWAP_FEE); }
+    function bridgeOut(amount, from, to){ const fee = BRIDGE_FEE[`${from}->${to}`] ?? 0.003; return amount*(1-fee); }
+    function planRoute(q){
+      const steps=[]; let amount=q.amount; let curAsset=q.src.asset; let curChain=q.src.chain;
+      if(curAsset!=="USDC"){
+        ensureSwapPossible(curAsset,"USDC",curChain);
+        const out = swapOut(amount, curAsset, "USDC");
+        steps.push({kind:"swap", chain:curChain, assetIn:curAsset, assetOut:"USDC", amountIn:amount, amountOut:out});
+        curAsset="USDC"; amount=out;
+      }
+      if(curChain!==q.dst.chain){
+        ensureBridgePossible(curChain,q.dst.chain,curAsset);
+        const out = bridgeOut(amount, curChain, q.dst.chain);
+        steps.push({kind:"bridge", from:curChain, to:q.dst.chain, asset:curAsset, amountIn:amount, amountOut:out});
+        curChain=q.dst.chain; amount=out;
+      }
+      if(q.dst.asset!==curAsset){
+        ensureSwapPossible(curAsset,q.dst.asset,curChain);
+        const out = swapOut(amount, curAsset, q.dst.asset);
+        steps.push({kind:"swap", chain:curChain, assetIn:curAsset, assetOut:q.dst.asset, amountIn:amount, amountOut:out});
+        curAsset=q.dst.asset; amount=out;
+      }
+      return { src:q.src, dst:q.dst, steps, outputQty:amount };
+    }
+
+    // --------------- Renderers ---------------
+    function renderErrors(list){
+      if(!list || list.length===0){ errorsEl.style.display="none"; errorsEl.innerHTML=""; return; }
+      errorsEl.style.display="block";
+      errorsEl.innerHTML = list.map(x=>`<li>${x}</li>`).join("");
+    }
+    function renderStats(){
+      statTotal.textContent = state.intents.length;
+      const counts={}; state.intents.forEach(it => { counts[it.owner]=(counts[it.owner]||0)+1; });
+      if(Object.keys(counts).length===0){ statOwners.innerHTML = "<em>—</em>"; return; }
+      statOwners.innerHTML = Object.entries(counts).map(([k,v]) =>
+        `<div class="flex items-center justify-between"><span>${k}</span><span>${v}</span></div>`).join("");
+    }
+    function renderIntents(){
+      if(state.intents.length===0){ intentsView.innerHTML = `<div class="italic text-gray-500">No intents yet. Add one or use seed buttons.</div>`; return; }
+      intentsView.innerHTML = `
+        <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;">
+          ${state.intents.map(it => `
+            <div class="rounded-2xl border bg-white shadow-sm p-3">
+              <div class="flex items-center justify-between">
+                <div class="font-bold">${it.owner || "(owner)"}</div>
+                <button data-id="${it.id}" class="btn btn-ghost" style="padding:.25rem .5rem">remove</button>
+              </div>
+              <div class="mt-2 text-sm">
+                <div class="flex items-start gap-2"><span class="text-gray-500" style="width:3rem">Give:</span><span class="font-mono text-xs">${assetMapToString(it.give)}</span></div>
+                <div class="flex items-start gap-2"><span class="text-gray-500" style="width:3rem">Want:</span><span class="font-mono text-xs">${assetMapToString(it.want)}</span></div>
+                <div class="flex items-start gap-2"><span class="text-gray-500" style="width:3rem">Domain:</span><span class="font-mono text-xs">${it.domain || "—"}</span></div>
+              </div>
+            </div>
+          `).join("")}
+        </div>`;
+      // remove handlers
+      intentsView.querySelectorAll("button[data-id]").forEach(btn=>{
+        btn.onclick = () => {
+          const id = btn.getAttribute("data-id");
+          state.intents = state.intents.filter(x=>x.id!==id);
+          renderAll();
+        };
+      });
+    }
+    function renderTableMatches(target, list){
+      if(!list || list.length===0){ target.innerHTML = `<div class="italic text-gray-500">—</div>`; return; }
+      target.innerHTML = list.map(m => `
+        <div class="rounded-xl border p-3 mb-3">
+          <div class="text-sm text-gray-600">${m.type==='two'?'Two-party':'Three-cycle'} • actors: ${m.actors.join(" → ")}</div>
+          <table class="table text-sm mt-2">
+            <thead><tr><th>From</th><th>To</th><th>Asset</th><th class="text-right">Qty</th></tr></thead>
+            <tbody>
+              ${m.transfer.map(t=>`
+                <tr class="border-t"><td>${t.from}</td><td>${t.to}</td><td class="font-mono">${t.asset}</td><td class="text-right">${t.qty}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `).join("");
+    }
+    function renderPlan(){
+      if(!state.plan){ planView.innerHTML=""; return; }
+      const p = state.plan;
+      planView.innerHTML = `
+        <div class="mb-2 text-gray-600">Estimated output: <b>${fmt(p.outputQty)} ${p.dst.asset}</b> on <b>${p.dst.chain}</b></div>
+        <table class="table text-sm">
+          <thead><tr><th>Step</th><th>Action</th><th class="text-right">Amount in</th><th class="text-right">Amount out</th></tr></thead>
+          <tbody>
+            ${p.steps.map((s,i)=>`
+              <tr class="border-t">
+                <td>#${i+1}</td>
+                <td>${s.kind==='swap'
+                    ? `Swap <b>${s.assetIn}</b>→<b>${s.assetOut}</b> on <b>${s.chain}</b>`
+                    : `Bridge <b>${s.asset}</b> ${s.from} → ${s.to}`}</td>
+                <td class="text-right">${fmt(s.amountIn)}</td>
+                <td class="text-right">${fmt(s.amountOut)}</td>
+              </tr>`).join("")}
+          </tbody>
+        </table>
+        <p class="mt-2 text-xs text-gray-500">Simulation only. Prices/fees are placeholders; no wallet, no on-chain calls.</p>
+      `;
+    }
+    function renderAll(){
+      renderErrors([]);
+      renderStats();
+      renderIntents();
+      renderTableMatches(twoView, state.results.two);
+      renderTableMatches(cycleView, state.results.cycles);
+      renderPlan();
+    }
+
+    // --------------- Actions ---------------
+    addBtn.onclick = () => {
+      const errs=[];
+      const owner = ownerEl.value.trim();
+      const give = parseAssetMap(giveEl.value||"");
+      const want = parseAssetMap(wantEl.value||"");
+      const domain = (domainEl.value||"").trim();
+      if(!owner) errs.push("Owner is required");
+      if(Object.keys(give).length===0) errs.push("Give is required");
+      if(Object.keys(want).length===0) errs.push("Want is required");
+      if(errs.length){ renderErrors(errs); return; }
+      state.intents = [{ id:genId(), owner, give, want, domain }, ...state.intents];
+      ownerEl.value=""; giveEl.value=""; wantEl.value=""; // domain'ı koru
+      renderAll();
+    };
+    seed2Btn.onclick = () => {
+      const a = {id:genId(), owner:"alice", give:{USDT:10}, want:{ATOM:10}, domain:"local:demo"};
+      const b = {id:genId(), owner:"bob",   give:{ATOM:10}, want:{USDT:10}, domain:"local:demo"};
+      state.intents = [a,b]; state.results={two:[], cycles:[]};
+      renderAll();
+    };
+    seed3Btn.onclick = () => {
+      const a = {id:genId(), owner:"ava", give:{USD:10}, want:{EUR:10}, domain:"x"};
+      const b = {id:genId(), owner:"ben", give:{EUR:10}, want:{JPY:10}, domain:"x"};
+      const c = {id:genId(), owner:"cai", give:{JPY:10}, want:{USD:10}, domain:"x"};
+      state.intents = [a,b,c]; state.results={two:[], cycles:[]};
+      renderAll();
+    };
+    matchBtn.onclick = () => {
+      state.results.two = computeTwoParty(state.intents);
+      state.results.cycles = computeThreeCycles(state.intents);
+      renderAll();
+    };
+    clearBtn.onclick = () => {
+      state.intents=[]; state.results={two:[], cycles:[]}; state.plan=null; planErrEl.style.display="none"; planErrEl.textContent="";
+      renderAll();
+    };
+    planBtn.onclick = () => {
+      planErrEl.style.display="none"; planErrEl.textContent="";
+      try{
+        const q = parseCommand(cmdEl.value);
+        state.plan = planRoute(q);
+      }catch(e){
+        state.plan = null;
+        planErrEl.textContent = (e && e.message) ? e.message : String(e);
+        planErrEl.style.display = "block";
+      }
+      renderAll();
+    };
+
+    // İlk render
+    renderAll();
+  </script>
+</body>
+</html>
